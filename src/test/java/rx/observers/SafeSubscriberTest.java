@@ -26,9 +26,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import rx.Subscription;
+import rx.exceptions.CompositeException;
 import rx.exceptions.OnCompletedFailedException;
 import rx.exceptions.OnErrorFailedException;
 import rx.exceptions.OnErrorNotImplementedException;
+import rx.exceptions.OnErrorThrowable;
 import rx.exceptions.TestException;
 import rx.exceptions.UnsubscribeFailedException;
 import rx.functions.Action0;
@@ -315,5 +318,77 @@ public class SafeSubscriberTest {
         }
     }
 
-    
+
+    @Test
+    public void testExceptionWhileOnErrorThrowsCorrectChain() {
+        final RuntimeException exceptionWithinOnError =
+                new TestException("from within onError");
+
+        final RuntimeException exceptionBeingHandled =
+                new RuntimeException("initial exception with cause",
+                        new OnErrorThrowable.OnNextValue(1));
+
+        TestSubscriber<Integer> ts = new TestSubscriber<Integer>() {
+            @Override
+            public void onError(Throwable e) {
+                throw exceptionWithinOnError;
+            }
+        };
+        SafeSubscriber<Integer> safe = new SafeSubscriber<Integer>(ts);
+
+        try {
+            safe.onError(exceptionBeingHandled);
+            Assert.fail("Must throw OnErrorFailedException");
+        } catch (OnErrorFailedException ex) {
+            ex.printStackTrace();
+            CompositeException compositeException = (CompositeException) ex.getCause();
+            Throwable causalChain = compositeException.getCause();
+
+            assertEquals(exceptionWithinOnError, causalChain.getCause());
+            assertEquals(exceptionBeingHandled, causalChain.getCause().getCause());
+        }
+    }
+
+    @Test
+    public void testExceptionWhileOnErrorAndOnUnsubscribeThrowsCorrectChain() {
+        final RuntimeException exceptionWithinOnError =
+                new TestException("from onError");
+
+        final RuntimeException exceptionBeingHandled =
+                new RuntimeException("initial exception with cause",
+                        new OnErrorThrowable.OnNextValue(1));
+
+        final TestException exceptionWithinUnsubscribe =
+                new TestException("from unsubscribe");
+
+        TestSubscriber<Integer> ts = new TestSubscriber<Integer>() {
+            @Override
+            public void onError(Throwable e) {
+                throw exceptionWithinOnError;
+            }
+        };
+        ts.add(new Subscription() {
+            @Override public void unsubscribe() {
+                throw exceptionWithinUnsubscribe;
+            }
+
+            @Override public boolean isUnsubscribed() {
+                return false;
+            }
+        });
+        SafeSubscriber<Integer> safe = new SafeSubscriber<Integer>(ts);
+
+        try {
+            safe.onError(exceptionBeingHandled);
+            Assert.fail("Must throw OnErrorFailedException");
+        } catch (OnErrorFailedException ex) {
+            ex.printStackTrace();
+            CompositeException compositeException = (CompositeException) ex.getCause();
+            Throwable causalChain = compositeException.getCause();
+
+            assertEquals(exceptionWithinUnsubscribe, causalChain.getCause());
+            assertEquals(exceptionWithinOnError, causalChain.getCause().getCause());
+            assertEquals(exceptionBeingHandled, causalChain.getCause().getCause().getCause());
+        }
+    }
 }

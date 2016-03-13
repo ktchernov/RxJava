@@ -186,10 +186,14 @@ public class SafeSubscriber<T> extends Subscriber<T> {
                     unsubscribe();
                 } catch (Throwable unsubscribeException) {
                     RxJavaPluginUtils.handleException(unsubscribeException);
-                    throw new OnErrorFailedException("Error occurred when trying to propagate error to Observer.onError and during unsubscription.", new CompositeException(Arrays.asList(e, e2, unsubscribeException)));
+                    throw new OnErrorFailedException(
+                            "Error occurred when trying to propagate error to Observer.onError and during unsubscription.",
+                            new CompositeException(Arrays.asList(unsubscribeException, e2, e)));
                 }
 
-                throw new OnErrorFailedException("Error occurred when trying to propagate error to Observer.onError", new CompositeException(Arrays.asList(e, e2)));
+                throw new OnErrorFailedException(
+                        "Error occurred when trying to propagate error to Observer.onError",
+                        new CompositeException(Arrays.asList(e2, e)));
             }
         }
         // if we did not throw above we will unsubscribe here, if onError failed then unsubscribe happens in the catch

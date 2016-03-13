@@ -88,7 +88,8 @@ public class SafeObserverTest {
         } catch (Exception e) {
             e.printStackTrace();
             assertTrue(e instanceof RuntimeException);
-            assertEquals("Error occurred when trying to propagate error to Observer.onError", e.getMessage());
+            assertEquals("Error occurred when trying to propagate error to Observer.onError",
+                    e.getMessage());
 
             Throwable e2 = e.getCause();
             assertTrue(e2 instanceof CompositeException);
@@ -97,11 +98,11 @@ public class SafeObserverTest {
 
             Throwable e3 = innerExceptions.get(0);
             assertTrue(e3 instanceof SafeObserverTestException);
-            assertEquals("error!", e3.getMessage());
+            assertEquals("onErrorFail", e3.getMessage());
 
             Throwable e4 = innerExceptions.get(1);
             assertTrue(e4 instanceof SafeObserverTestException);
-            assertEquals("onErrorFail", e4.getMessage());
+            assertEquals("error!", e4.getMessage());
         }
     }
 
@@ -146,11 +147,11 @@ public class SafeObserverTest {
 
             Throwable e3 = innerExceptions.get(0);
             assertTrue(e3 instanceof SafeObserverTestException);
-            assertEquals("onNextFail", e3.getMessage());
+            assertEquals("onErrorFail", e3.getMessage());
 
             Throwable e4 = innerExceptions.get(1);
             assertTrue(e4 instanceof SafeObserverTestException);
-            assertEquals("onErrorFail", e4.getMessage());
+            assertEquals("onNextFail", e4.getMessage());
         }
     }
 
@@ -232,7 +233,9 @@ public class SafeObserverTest {
 
             // assertions for what is expected for the actual failure propagated to onError which then fails
             assertTrue(e instanceof RuntimeException);
-            assertEquals("Error occurred when trying to propagate error to Observer.onError and during unsubscription.", e.getMessage());
+            assertEquals(
+                    "Error occurred when trying to propagate error to Observer.onError and during unsubscription.",
+                    e.getMessage());
 
             Throwable e2 = e.getCause();
             assertTrue(e2 instanceof CompositeException);
@@ -241,15 +244,15 @@ public class SafeObserverTest {
 
             Throwable e3 = innerExceptions.get(0);
             assertTrue(e3 instanceof SafeObserverTestException);
-            assertEquals("onError failure", e3.getMessage());
+            assertEquals("failure from unsubscribe", e3.getMessage());
 
             Throwable e4 = innerExceptions.get(1);
             assertTrue(e4 instanceof SafeObserverTestException);
             assertEquals("onErrorFail", e4.getMessage());
 
-            Throwable e5 = innerExceptions.get(2);
-            assertTrue(e5 instanceof SafeObserverTestException);
-            assertEquals("failure from unsubscribe", e5.getMessage());
+            Throwable e6 = innerExceptions.get(2);
+            assertTrue(e6 instanceof SafeObserverTestException);
+            assertEquals("onError failure", e6.getMessage());
         }
     }
 

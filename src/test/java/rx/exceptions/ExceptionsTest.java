@@ -163,8 +163,8 @@ public class ExceptionsTest {
             fail("expecting an exception to be thrown");
         } catch (OnErrorFailedException t) {
             CompositeException cause = (CompositeException) t.getCause();
-            assertTrue(cause.getExceptions().get(0) instanceof IllegalArgumentException);
-            assertTrue(cause.getExceptions().get(1) instanceof IllegalStateException);
+            assertTrue(cause.getExceptions().get(0) instanceof IllegalStateException);
+            assertTrue(cause.getExceptions().get(1) instanceof IllegalArgumentException);
         }
     }
 
